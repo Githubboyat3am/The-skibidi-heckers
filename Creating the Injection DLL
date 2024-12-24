@@ -1,0 +1,12 @@
+#include <Windows.h>
+#include <iostream>
+
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
+{
+    if (ul_reason_for_call == DLL_PROCESS_ATTACH) {
+        // Initialize or hook the game’s memory
+        // Add your aimbot or ESP code here
+        MessageBoxA(0, "Injected!", "Success", MB_OK);
+    }
+    return TRUE;
+}
