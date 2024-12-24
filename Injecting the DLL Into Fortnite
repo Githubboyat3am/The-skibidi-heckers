@@ -1,0 +1,35 @@
+#include <Windows.h>
+#include <iostream>
+
+void InjectDLL(const char* dllPath, DWORD processId) {
+    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
+    if (hProcess == NULL) {
+        std::cout << "Failed to open process." << std::endl;
+        return;
+    }
+
+    LPVOID allocMem = VirtualAllocEx(hProcess, NULL, strlen(dllPath), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    WriteProcessMemory(hProcess, allocMem, dllPath, strlen(dllPath), NULL);
+    CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)allocMem, NULL, 0, NULL);
+    CloseHandle(hProcess);
+}
+
+int main() {
+    DWORD processId;
+    HWND hwnd = FindWindowA(NULL, "Fortnite");
+
+    if (hwnd == NULL) {
+        std::cout << "Fortnite not found!" << std::endl;
+        return 1;
+    }
+
+    GetWindowThreadProcessId(hwnd, &processId);
+    if (processId == 0) {
+        std::cout << "Error: Unable to retrieve process ID!" << std::endl;
+        return 1;
+    }
+
+    const char* dllPath = "path_to_your_dll.dll";  // Replace with actual DLL path
+    InjectDLL(dllPath, processId);
+    return 0;
+}
