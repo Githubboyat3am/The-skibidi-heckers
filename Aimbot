@@ -1,0 +1,82 @@
+-- Ultra-Advanced Fortnite Aimbot + ESP with Auto Injection and F1 Toggle GUI
+local aimbotEnabled = false
+local espEnabled = false
+local guiVisible = true
+local fov = 120
+local maxDistance = 300
+local smoothness = 0.5
+
+
+-- Auto Injection
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+if game.PlaceId ~= "FortnitePlaceID" then
+    return error("This script is designed specifically for Fortnite.")
+end
+
+-- Create GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FortniteAimbotESP_GUI"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Aimbot Toggle Button
+local aimbotButton = Instance.new("TextButton")
+aimbotButton.Size = UDim2.new(0, 200, 0, 50)
+aimbotButton.Position = UDim2.new(0.5, -220, 0.85, -100)
+aimbotButton.Text = "Aimbot: OFF"
+aimbotButton.Parent = screenGui
+
+-- Toggle GUI with F1
+local userInputService = game:GetService("UserInputService")
+
+userInputService.InputBegan:Connect(function(input, isProcessed)
+    if not isProcessed and input.KeyCode == Enum.KeyCode.F1 then
+        guiVisible = not guiVisible
+        screenGui.Enabled = guiVisible
+    end
+end)
+
+-- Toggle Aimbot
+aimbotButton.MouseButton1Click:Connect(function()
+    aimbotEnabled = not aimbotEnabled
+    aimbotButton.Text = "Aimbot: " .. (aimbotEnabled and "ON" or "OFF")
+end)
+
+
+
+-- Aimbot Function
+local function aimbotLogic()
+    while aimbotEnabled do
+        local closestEnemy = nil
+        local shortestDistance = math.huge
+        local player = game.Players.LocalPlayer
+
+        for _, target in pairs(game.Players:GetPlayers()) do
+            if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                local distance = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+                if distance < maxDistance and distance < shortestDistance then
+                    closestEnemy = target
+                    shortestDistance = distance
+                end
+            end
+        end
+
+        if closestEnemy then
+            local aimPosition = closestEnemy.Character.HumanoidRootPart.Position
+            local aimDirection = (aimPosition - player.Character.HumanoidRootPart.Position).unit
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(player.Character.HumanoidRootPart.Position, player.Character.HumanoidRootPart.Position + aimDirection)
+        end
+        wait(smoothness)
+    end
+end
+
+-- Start Aimbot Thread
+spawn(function()
+    while wait() do
+        if aimbotEnabled then
+            aimbotLogic()
+        end
+    end
+end)
